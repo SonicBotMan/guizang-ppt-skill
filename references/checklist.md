@@ -266,123 +266,15 @@ JS 会动态算总页数并扩展底部翻页圆点，但 `.chrome` 里的 `XX /
 
 ---
 
-## 🔴 常见布局问题修复指南（实战经验）
+## 🔴 内容溢出快速修复
 
-以下问题在实际制作中经常出现，按症状 → 解决方法的方式整理。
+`template.html` 已默认在 `.frame` 上添加 `padding-bottom:6vh;overflow:hidden` 双重兜底，绝大多数页面无需额外处理。如仍有溢出：
 
-### 问题 1：内容与底部 foot 重叠
+| 症状 | 最小修复 |
+|------|---------|
+| grid-6（3×2 卡片）第二行被裁 | 缩小 gap：`style="gap:3vh 4vw"` |
+| pipeline 3+ 组总高度超屏 | 合并为 2 组，或 `step-desc` 控制在 8 字内 |
+| 对比页 (grid-2-6-6) 列表被裁 | 缩小 gap：`style="gap:4.5vw 3.5vh"` |
+| 通用溢出 | 按序尝试：缩 gap → 减间距 → 精简文案 |
 
-**症状**：数据页、pipeline 页、对比页的内容底部被版本信息、页码等 foot 元素遮挡或重叠。
-
-**原因**：早期版本的 template.html 中 `.frame` 只设置了 `padding-top`，没有 `padding-bottom`，内容会一直延伸到页面底部。
-
-**修复方法**：
-- **v0.11+ 版本已默认修复**：template.html 的 `.frame` 样式已包含 `padding-bottom: 6vh`
-- 如果仍有重叠，可以增加 padding：
-```html
-<!-- 标准情况（v0.11+ 默认已足够） -->
-<div class="frame">
-
-<!-- 内容特别密集时 -->
-<div class="frame" style="padding-bottom:8vh">
-```
-
-**经验值**：`padding-bottom: 6vh` 通常足够容纳底部 chrome 和 foot。如果内容特别密集（3+ 个 pipeline-section + 大 grid），可以增加到 `8vh`。
-
-**适用页面**：数据页、核心能力页、工作流页、对比页。
-
-### 问题 2：grid-6 (3×2 数据卡片) 内容溢出
-
-**症状**：第二行的数据卡片底部和 foot 重叠，数字显示不完整。
-
-**原因**：`grid-6` 默认 `gap: 4vw 6vh`（水平 4vw，垂直 6vh）在内容密集时会挤占过多空间。
-
-**修复方法**：
-```html
-<!-- 默认间距 -->
-<div class="grid-6" style="margin-top:6vh">
-
-<!-- 紧凑间距 -->
-<div class="grid-6" style="margin-top:4vh; gap:3vh 4vw">
-```
-
-**经验值**：
-- 页面顶部标题区：`padding-top: 5vh`
-- 标题到 grid 的间距：`margin-top: 3-4vh`
-- grid 内部垂直间距：`gap: 2-3vh`（默认 4vh 太大）
-
-### 问题 3：pipeline 多组内容溢出
-
-**症状**：3 个 pipeline-section 的总高度超过屏幕，最后一组与 foot 重叠。
-
-**原因**：每个 pipeline-section 有顶部边框分隔线（`.pipeline-section { padding-top: 2.8vh; border-top: 1px dashed }`），多组时会累积高度。
-
-**修复方法**：
-1. **减少 pipeline 组数**：将 3 组合并为 2 组
-2. **减少每组步骤数**：5 个步骤可以考虑
-3. **缩短描述文案**：`step-desc` 控制在 8-10 字内
-4. **添加 padding-bottom**：给 `.frame` 加 `padding-bottom: 6vh`
-
-**示例**（10 步 → 8 步）：
-```html
-<!-- 之前：3 组，10 步 -->
-<div class="pipeline-section">... 3 步 ...</div>
-<div class="pipeline-section">... 4 步 ...</div>
-<div class="pipeline-section">... 3 步 ...</div>
-
-<!-- 修复：2 组，8 步 -->
-<div class="pipeline-section">... 3 步 ...</div>
-<div class="pipeline-section">... 5 步 ...</div>
-```
-
-### 问题 4：对比页 (grid-2-6-6) 列表内容溢出
-
-**症状**：左右两列的 `<ul>` 列表底部与 foot 重叠。
-
-**原因**：`.grid-2-6-6` 默认 `gap: 4vw 6vh`，加上 padding 和边框，总高度超出。
-
-**修复方法**：
-```html
-<!-- 默认间距 -->
-<div class="grid-2-6-6" style="gap:5vw 4vh">
-
-<!-- 紧凑间距 -->
-<div class="grid-2-6-6" style="gap:4.5vw 3.5vh">
-```
-
-**经验值**：
-- 标题到 grid 的间距：`margin-bottom: 3.5vh`（默认 4vh）
-- grid 内部垂直间距：`gap: 3.5vh`（默认 4vh）
-- 列表项间距：`gap: 1.4vh` 已经很紧凑，不要再小
-
-### 通用快速修复 checklist
-
-如果发现任何页面内容溢出，按以下顺序尝试：
-
-1. ✅ **给 `.frame` 加 `padding-bottom: 6vh`**
-2. ✅ **减小页面顶部间距**：`padding-top: 5vh` → `4vh`
-3. ✅ **减小标题下方间距**：`margin-bottom: 4vh` → `3vh`
-4. ✅ **减小 grid/pipeline 的 gap**：
-   - grid-6: `gap: 4vw 6vh` → `gap: 3vw 4vh` 或 `2vh 4vw`
-   - pipeline-section: 间距已固定，无法调整
-   - grid-2-6-6: `gap: 5vw 4vh` → `gap: 4.5vw 3.5vh`
-5. ✅ **精简文案**：缩短 kicker、h-xl、step-desc 的字数
-
-**最后手段**（不推荐，会影响美学）：
-- 减小字号（但不要低于模板最小值）
-- 移除 chrome 或 foot（破坏杂志风格）
-
----
-
-## 🧪 快速验证方法
-
-生成后，用浏览器打开，按以下方法快速检查：
-
-1. **全屏模式**（F11）：看是否有内容溢出
-2. **缩放到 90%**（Ctrl+Minus）：如果 90% 才能完整显示，说明内容太多
-3. **在不同分辨率测试**：
-   - 1920×1080：标准
-   - 1366×768：最严苛，应该能完整显示
-   - 1280×720：如有问题，需要大幅精简
-
-**黄金法则**：如果 1366×768 能完整显示，大部分现代屏幕都没问题。
+**验证**：1366×768 全屏下完整显示即可。
